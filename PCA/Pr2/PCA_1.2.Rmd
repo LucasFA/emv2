@@ -90,6 +90,8 @@ library(factoextra)
 # Package required to call 'scatterplot3d' function
 library(scatterplot3d)
 
+library(haven)
+
 ```
 
 ## Description of the data set *DB_PCA_1.2.sav*
@@ -100,11 +102,10 @@ The following code chunk shows how to load the dataset with IBMS SPSS format (.s
 ### IBM SPSS format *(.sav)*
 
 ```{r warning=FALSE, message=FALSE}
-
 # Loading a .sav (IBM SPSS) file
 # The output of this function is NOT a data.frame object
 # Remember that package 'foreign' is required
-data_spss<-read.spss("DB_PCA_1.2.sav", to.data.frame=TRUE)
+data_spss<-read_spss("DB_PCA_1.2.sav")
 
 # This sentence identifies the type of object that the identifier represents
 class(data_spss)

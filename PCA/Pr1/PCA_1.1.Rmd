@@ -224,7 +224,6 @@ summary(Al)
 table(Site)
 # Relative
 round(prop.table(table(Site)),2)
-
 ```
 
 ## Basic descriptive statistics of **quantitative variables**

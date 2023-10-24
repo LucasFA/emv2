@@ -1,0 +1,6 @@
+library(read_excel)
+glaucoma <- read_excel("glaucoma.xlsx")
+
+glaucoma
+
+
