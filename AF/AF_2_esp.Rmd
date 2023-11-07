@@ -1,0 +1,350 @@
+---
+title: "Análisis factorial - Práctica 2"
+author: "José Luis Romero Béjar"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  word_document:
+    toc: yes
+    toc_depth: '6'
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: 6
+    number_sections: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+<style>
+.math {
+  font-size: 8.25pt;options(encoding = 'UTF-8')
+}
+</style>
+
+<div style="text-align: justify">
+
+© This material is licensed under a **Creative Commons CC BY-NC-ND** attribution which allows *works to be downloaded and shared with others, as long as they are referenced, but may not be modified in any way or used commercially*.
+
+En esta práctica, se identifican las variables que corresponden a cada uno de los 5 aspectos de la personalidad de entre los 25 items de un test de personalidad. Las cinco características que definen la personalidad de un individuo son: A - Amabilidad o simpatía; C - Conciencia o responsabilidad; E - Extraversión; N - Neuroticismo y - Apertura a las experiencias. 
+
+Para hacer esto, se considera el conjunto de datos *bfi* de la biblioteca psyh. Este conjunto de datos contiene 2800 observaciones con 28 variables, de las cuales 25 corresponden a los diferentes ítems de un test de personalidad (MBI: Maslach Burnout Inventory).
+
+Para realizar esta práctica se deben descargar los siguientes archivos disponibles en la plataforma PRADO del curso:
+
++ *AF_2_esp.Rmd*
+
+
+Aspectos tratados:
+
++ Realizar un análisis exploratorio previo de los datos para identificar posibles datos perdidos y valores extremos.
++ Tomar decisiones y tratar datos perdidos y valores extremos.
++ Verificar los supuestos y realizar un análisis factorial (AF).
++ Elección del número óptimo de factores.
++ Interpretación de distintas salidas gráficas de interés para este método.
++ Lenguaje R: depuración de funciones.
+
+
+
+# **Cargando paquetes y el conjunto de datos**
+
+## Cargar e instalar paquetes de R
+
+El siguiente módulo de código fuente se encarga de cargar, si ya están instalados, todos los paquetes que se utilizarán en esta sesión de R. Si bien un paquete R se puede cargar en cualquier momento cuando se vaya a utilizar, es recomendable optimizar sus llamadas con este fragmento de código al principio.
+
+Cargar un paquete en una sesión de R **requiere que ya esté instalado**. Si no es así, el primer paso es ejecutar la sentencia:
+
+*install.packages("name_of_the_library")*
+
+
+```{r warning=FALSE, message=FALSE}
+
+#########################################
+# Loading necessary packages and reason #
+#########################################
+
+# This is an example of the first installation of a package
+# Only runs once if the package is not installed
+# Once it is installed this sentence has to be commented (not to run again)
+# install.packages("summarytools")
+
+# Package required to call 'factanal' function
+library(stats)
+
+# Package required to call 'freq' function
+library(summarytools)
+
+# Package required to call 'cortest.bartlett' function
+library(psych)
+
+# Package required to call 'hetcor' function
+library(polycor)
+
+# Package required to call 'ggcorrplot' function
+library(ggcorrplot)
+
+# Package required to call 'corrplot' function
+library(corrplot)
+
+# Package required to call 'rplot' function
+library(corrr)
+
+```
+
+## Descripción del conjunto de datos *bfi*
+
+
+El siguiente fragmento de código muestra cómo cargar el conjunto de datos *bfi* incluido en el paquete *psych*.
+
+### Conjunto de datos *bfi*
+
+```{r warning=FALSE, message=FALSE}
+
+# bfi is a data.frame in the package psych
+# Remember that package 'psych' is required
+# For this example, only the 25 first variables (related to personality) are considered
+bfi_s <- bfi[,1:25]
+
+```
+
+El data.frame *bfi_s* contiene las variables *A1 a A5, C1 a C5, E1 a E5, N1 a N5 y O1 a O5*, que son las respuestas de cada individuo a los 25 ítems del cuestionario MBI.
+
+# **Estadística descriptiva básica**
+
+En esta sección, se realiza un análisis de datos exploratorio preliminar del conjunto de datos. Para ello, si la variable es **cuantitativa**, se muestran los **estadísticos descriptivos numéricos** básicos y una representación de su **histograma, densidad y boxplot**. Por otro lado, para las variables **categóricas** se proporciona su **tabla de frecuencias** y un **diagrama de sectores y barras**.
+
+En esta ocasión se trata de una asignación voluntaria para el lector, quien puede replicar el código fuente de *Práctica de ACP_1.1* o *Práctioca de ACP_1.2* que realizan esta tarea.
+
+## **Explorando** el conjunto de datos
+
+```{r warning=FALSE, message=FALSE}
+
+# This line loads the variable names from this data.frame
+# So that we can access by their name with no refer to the data.frame identifier
+attach(bfi_s)
+
+# Retrieving the name of all variables
+colnames(bfi_s)
+
+# Displaying a few records
+head(bfi_s, n=5)
+
+# Displaying frequencies table for all the variables A1 to A5
+freq(A1)
+freq(A2)
+freq(A3)
+freq(A4)
+freq(A5)
+
+```
+
+## **Análisis descriptivo** (numérico y gráfico)
+
+
+### Variables A1 a A5
+
+Se deja al lector.
+
+### Variables C1 a C5
+
+Se deja al lector.
+
+### Variables E1 a E5
+
+Se deja al lector.
+
+### Variables N1 a N5
+
+Se deja al lector.
+
+### Variables O1 a O5
+
+Se deja al lector.
+
+
+## **Datos perdidos** (NA)
+
+### Identificación y tratamiento
+
+**La decisión para los datos no disponibles es reemplazarlos por la mediana de su variable**. Esta decisión se ha tomado asumiendo que el comportamiento de la *NA* es totalmente aleatorio (esto habría que analizarlo en profundidad para confirmar esta decisión tomada). Quizás no sea la mejor opción, depende del problema que se esté analizando y de los datos registrados, pero es una forma de introducir al lector a **cómo definir funciones en lenguaje R**.
+
+El siguiente código fuente define la función *not_available* cuya utilidad es tratar con datos no disponibles o perdidos.
+
+
+```{r warning=FALSE, message=FALSE}
+
+# Construction of the function that handles missing values.
+not_available<-function(data,na.rm=F){
+  data[is.na(data)]<-median(data,na.rm=T)
+  data
+}
+bfi_s<-as.data.frame(apply(bfi_s,2,not_available))
+
+# Viewing the data again
+head(bfi_s,n=3)
+
+```
+
+
+
+# **Análisis factorial**
+
+## Supuestos previos
+
+### Variables correladas
+
+De acuerdo con los resultados numéricos siguientes, se observa que los datos **están correlacionados** tanto **a nivel de muestra** (ver matriz de correlación) como **a nivel de población** (la prueba de esfericidad de Bartlett es significativa).
+
+```{r warning=FALSE, message=FALSE}
+
+###############################
+# Correlation at sample level #
+###############################
+
+# Are the variables correlated at sample level?
+correlation_matrix<-cor(bfi_s)
+# Since this matrix is a 25x25 matrix it is only displayed de first 6x6 places
+correlation_matrix[1:6,1:6]
+det(correlation_matrix)
+
+
+###################################
+# Correlation at population level #
+###################################
+
+# Bartlett's sphericity test:
+# This test checks whether the correlations are significantly different from 0
+# The null hypothesis is H_0; det(R)=1 means the variables are uncorrelated 
+# R denotes the correlation matrix
+# cortest.bartlett function in the package pysch performs this test
+# This function works with standardized data.
+
+# Standardization
+bfi_scale<-scale(bfi_s)
+
+# Bartlett's sphericity test
+cortest.bartlett(cor(bfi_scale))
+
+```
+
+A continuación se ilustran diferentes resultados gráficos que proporcionan una idea intuitiva de la correlación entre las variables. Un *ojo entrenado* podría anticipar la cantidad adecuada de factores con esta información visual.
+
+```{r warning=FALSE, message=FALSE}
+
+# Polychoric correlation matrix
+# Remember that package 'polycor' is required for 'hetcor' function
+poly_cor<-hetcor(bfi_s)$correlations
+
+# Remember that package 'ggcoorplot' is required for 'ggcorrplot' function
+ggcorrplot(poly_cor, type="lower",hc.order=T)
+
+# Another interesting visual representation is the following
+# Remember that package 'corrplot' is required for 'corrplot' function
+corrplot(cor(bfi_s), order = "hclust", tl.col='black', tl.cex=1)
+
+# Or this other option is also very visual
+# Remember that package 'corrr' is required for 'rplot' function
+bfi_s_correlaciones <- correlate(bfi_s)  #C?lculo de un objeto de correlaciones
+rplot(bfi_s_correlaciones, legend = TRUE, colours = c("firebrick1", "black","darkcyan"), print_cor = TRUE) 
+
+
+```
+
+
+## Análisis factorial
+
+### Obtención del modelo
+
+Se debe elegir un método para extraer los factores: factor principal, probabilidad, etc. La función *fa()* implementa hasta 6 métodos diferentes. Este ejemplo compara los resultados de dos métodos.
+
+En primer lugar se realizan dos modelos con tres factores. A continuación, se muestra la matriz factorial de tres factores latentes para los dos modelos para comparar las diferencias entre los pesos factoriales.
+
+```{r warning=FALSE, message=FALSE}
+
+### Test of two models with three factors
+modelo1<-fa(poly_cor,
+            nfactors = 3,
+            rotate = "none",
+            fm="mle") # likelihood method
+
+modelo2<-fa(poly_cor,
+            nfactors = 3,
+            rotate = "none",
+            fm="minres") # minimal residual model
+
+# Outputs of these models: factorial matrices, etc.
+
+print("Modelo 1: mle")
+modelo1$loadings
+print("Modelo 2: minres")
+modelo2$loadings
+```
+
+Finalmente, se hace una comparación de las comunalidades de estos dos métodos. Parece que las comunalidades del modelo de verosimilitud (primera columna) son mayores que las del modelo de residuos mínimos (segunda columna).
+
+```{r warning=FALSE, message=FALSE}
+
+# Comparing communalities
+sort(modelo1$communality,decreasing = T)->c1
+sort(modelo2$communality,decreasing = T)->c2
+head(cbind(c1,c2))
+
+# Comparison of uniqueness, that is, the proportion of variance that has not 
+# been explained by the factor (1-communality)
+sort(modelo1$uniquenesses,decreasing = T)->u1
+sort(modelo2$uniquenesses,decreasing = T)->u2
+head(cbind(u1,u2),n=10)
+
+```
+
+
+
+### Número adecuado de factores latentes
+
+Existen diferentes criterios, entre los que destacan el **Scree plot** (Cattel 1966) y el **análisis paralelo** (Horn 1965). Según los siguientes resultados gráficos, **5** se considera el **número óptimo de factores** (análisis paralelo), a pesar de que **3** son los apropiados según el primer gráfico scree plot.
+
+```{r warning=FALSE, message=FALSE}
+
+# Scree plot
+scree(poly_cor)
+
+#Parallel analysis
+fa.parallel(poly_cor,n.obs=100,fa="fa",fm="ml")
+
+
+```
+
+Se realiza el modelo factorial con 5 factores implementando una rotación varimax para buscar una interpretación más sencilla.
+
+```{r warning=FALSE, message=FALSE}
+
+modelo_varimax<-fa(poly_cor,nfactors = 5,rotate = "varimax",
+                   fa="mle")
+
+# The rotated factorial matrix is shown
+print(modelo_varimax$loadings,cut=0) 
+
+```
+
+Visualmente podríamos hacer el esfuerzo de ver qué variables se correlacionan cada una con uno de los factores, pero es muy tedioso. Entonces usamos la siguiente representación en modo diagrama.
+
+En este diagrama, entre otras cosas, se ve que el primer factor está asociado a los ítems E1, E2, E3, E4 y E5, que son los ítems del cuestionario que intentan identificar la cualidad de la extraversión. El resto de ítems quedan igualmente englobados dentro de la dimensión de la personalidad correspondiente.
+
+```{r warning=FALSE, message=FALSE}
+
+fa.diagram(modelo_varimax)
+
+```
+
+Otra forma de hacer el análisis anterior.
+
+```{r warning=FALSE, message=FALSE}
+
+# Remember that package 'stats' is required for 'factanal' function
+# This function only performs the mle method
+FA<-factanal(bfi_s,factors=5, rotation="varimax")
+FA$loadings
+
+
+```
+
