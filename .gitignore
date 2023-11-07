@@ -1,7 +1,13 @@
+# Otros
+*.html
+*.tex
+*.pdf
+
 # Datos
 *.csv
 *.dat
 *.sav
+*.xlsx
 
 # History files
 .Rhistory
