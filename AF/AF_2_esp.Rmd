@@ -140,7 +140,6 @@ freq(A5)
 
 ## **Análisis descriptivo** (numérico y gráfico)
 
-
 ### Variables A1 a A5
 
 Se deja al lector.

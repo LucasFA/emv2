@@ -86,7 +86,6 @@ library(factoextra)
 
 # Package required to call 'scatterplot3d' function
 library(scatterplot3d)
-
 ```
 
 ## Loading a data set from different formats
@@ -100,7 +99,6 @@ The following code chunks show how to load these different formats.
 ### IBM SPSS format *(.sav)*
 
 ```{r warning=FALSE, message=FALSE}
-
 # Loading a .sav (IBM SPSS) file
 # The output of this function is NOT a data.frame object
 # Remember that package 'foreign' is required
@@ -108,13 +106,11 @@ data_spss<-read.spss("DB.sav", to.data.frame=TRUE)
 
 # This sentence identifies the type of object that the identifier represents
 class(data_spss)
-
 ```
 
 ### Excel format (*.xlsx*)
 
 ```{r warning=FALSE, message=FALSE}
-
 # Loading a .xlsx (excel) file.
 # The output of this function is already a data.frame object
 # Remember that package 'readxl' is required
@@ -122,7 +118,6 @@ data_xlsx<-read_excel("DB.xlsx")
 
 # This sentence identifies the type of object that the identifier represents
 class(data_xlsx)
-
 ```
 
 ### Comma separated values (*.csv*)

@@ -96,7 +96,6 @@ library(haven)
 
 ## Description of the data set *DB_PCA_1.2.sav*
 
-
 The following code chunk shows how to load the dataset with IBMS SPSS format (.sav).
 
 ### IBM SPSS format *(.sav)*
