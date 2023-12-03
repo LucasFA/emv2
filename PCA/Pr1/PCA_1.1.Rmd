@@ -24,7 +24,7 @@ output:
 
 <div style="text-align: justify">
 
-© This material is licensed under a **Creative Commons CC BY-NC-ND** attribution which allows *works to be downloaded and shared with others, as long as they are referenced, but may not be modified in any way or used commercially*.
+© This material is licensed under a **Creative Commons CC BY-NC-NDCreative Commons CC BY-NC-ND** attribution which allows *works to be downloaded and shared with others, as long as they are referenced, but may not be modified in any way or used commercially*.
 
 This brief guide is intended to familiarize the reader with the following:
 

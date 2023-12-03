@@ -1,0 +1,327 @@
+---
+title: "Análisis cluster - Práctica 3"
+author: "José Luis Romero Béjar"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  word_document:
+    toc: yes
+    toc_depth: '6'
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: 6
+    number_sections: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+<style>
+.math {
+  font-size: 8.25pt;options(encoding = 'UTF-8')
+}
+</style>
+
+<div style="text-align: justify">
+
+© This material is licensed under a **Creative Commons CC BY-NC-ND** attribution which allows *works to be downloaded and shared with others, as long as they are referenced, but may not be modified in any way or used commercially*.
+
+En esta práctica se ilustran dos ejemplos de análisis cluster mediante un **método jerárquico (Ward)** y mediante un método **no jerárquico (K-means)**.
+
+Para realizar esta práctica se deben descargar los siguientes archivos, disponibles en la plataforma PRADO del curso:
+
++ *AC_3_esp.Rmd*
+
+
+Aspectos tratados:
+
++ Paquetes de R necesarios.
++ Preparación de los datos.
++ Algunas distancias para análisis cluster.
++ Algoritmo de agrupamiento jerárquico.
++ Algoritmo de agrupamiento no jerárquico.
+
+Este material es una adaptación de un [curso de R de Bradley Boehmke](https://uc-r.github.io/kmeans_clustering), en concreto, la parte que hace referencia a análisis cluster.
+
+
+
+# **Cargando paquetes y el conjunto de datos**
+
+## Cargar e instalar paquetes de R
+
+El siguiente módulo de código fuente se encarga de cargar, si ya están instalados, todos los paquetes que se utilizarán en esta sesión de R. Si bien un paquete R se puede cargar en cualquier momento cuando se vaya a utilizar, es recomendable optimizar sus llamadas con este fragmento de código al principio.
+
+Cargar un paquete en una sesión de R **requiere que ya esté instalado**. Si no es así, el primer paso es ejecutar la sentencia:
+
+*install.packages("name_of_the_library")*
+
+```{r warning=FALSE, message=FALSE}
+
+#########################################
+# Loading necessary packages and reason #
+#########################################
+
+# This is an example of the first installation of a package
+# Only runs once if the package is not installed
+# Once it is installed this sentence has to be commented (not to run again)
+# install.packages("factoextra")
+
+# Package required to call 'mutate' function
+library(tidyverse)
+
+# Package required to call 'clusGap' function
+library(cluster)
+
+# Package required to call 'get_dist', 'fviz_cluster' and 'fviz_dist' functions
+library(factoextra)
+
+# Package required to call 'ggdendrogram' function
+library(ggdendro)
+
+# Package required to call 'grid.arrange' function
+library(gridExtra)
+
+```
+
+
+## Preparación de los datos
+
+Para realizar un análisis cluster con R los datos deben ser preparados como sigue:
+
+
+* Hay que asegurarse de que las **filas** son **registros de observaciones** y que las **columnas** son las **variables** de interés (estructura tipo data.frame).
+* Hay que hacer un tratamiento adecuado de los **valores perdidos** (eliminar o sustituir su valor).
+* Se debe decidir si **trabajar con datos estandarizados** para hacer comparables variables medidas en distintas escalas.
+
+Para esta práctica se trabajará con el conjunto de datos *USArrests* del repositorio base de R. Este conjunto de datos contiene estadísticas sobre arrestos por cada 100.000 habitantes según el delito: atraco, asesinato y violación en cada uno de los 50 estados de USA en el año 1973. También incluye el porcentaje de población residente en áreas urbanas. Para este ejemplo se decide **omitir todos los valores perdidos** y **se estandarizan los datos**.
+
+```{r warning=FALSE, message=FALSE}
+
+# Data loading
+df<-USArrests
+# Visualization of a few records
+head(df)
+
+# Decide to delete not available data
+df<-na.omit(df)
+
+# To prevent the cluster analysis from being influenced by any arbitrary variable, the data are standardized
+df<-as.data.frame(scale(df))
+
+# Visualization of standardized data
+head(df)
+
+```
+
+# **Análisis cluster**
+
+## Algunas distancias para análisis cluster
+
+Para clasificar las observaciones en grupos es necesario elegir medidas de **similaridad**, o de **distancia** (disimilaridad), adecuadas que proporcionen información de como de parecidas son dos observaciones cualesquiera. De hecho esta elección influye en el tamaño y forma de los clusters.
+Esta elección es un **paso fundamental** en clustering. 
+
+Algunas **medidas de distancia clásicas** frecuentemente utilizadas son la distancia **Euclídea** o la distancia **Manhattan**.
+
+Otras medidas de disimilaridad ampliamente utilizadas, por ejemplo, en el análisis de datos de expresión génica son las **distancias basadas en correlaciones**. Estas distancias se obtienen restando la correspondiente medida de correlación al valor 1. Entre estas medidas de distancia destacan: la distancia basada en la correlación de **Pearson**, en la correlación de **Spearman**, correlación de **Kendall**, etc.
+
+Pulsar este [enlace](https://uc-r.github.io/kmeans_clustering) para consultar una expresión formal de estas distancias.
+
+Como se ha dicho anteriormente la elección de la distancia es muy importante. Casi todo el software habitual para análisis cluster utiliza la distancia euclídea, aunque dependiendo del tipo de datos y de las preguntas de investigación planteadas puede interesar otra medida de disimilaridad o distancia.
+
+En R es fácil calcular y visualizar la matriz de distancias entre observaciones con las funciones *get_dist* y *fviz_dist*, respectivamente, incluidas en el paquete *factoextra*. De hecho, aunque por defecto, *get_dist* calcula la distancia euclídea también admite como parámetro todas las distancias mencionadas anteriormente.
+
+La siguiente matriz de distancias muestra en **marrón aquellos estados que presentan grandes disimilitudes** (distancias), frente a aquellos que parecen **más cercanos en amarillo**. Se utiliza el color blanco para referirse a aquellos estados con distancias no tan extremas como para ser consideradas como bajas o altas.
+
+```{r warning=FALSE, message=FALSE}
+
+distance<- get_dist(df)
+fviz_dist(distance, gradient = list(low ="yellow", mid = "white", high = "brown"))
+
+```
+
+## **Clustering jerárquico**: método de Ward
+
+El **agrupamiento jerárquico** está interesado en encontrar una jerarquía basada en la cercanía o semejanza de los datos según la distancia considerada. En el caso **aglomerativo**, se parte de un grupo con las observaciones más cercanas. A continuación se calculan los siguientes pares más cercanos y de manera ascendente se van generando grupos. Esta construcción se puede observar de forma visual con la construcción de un **dendrograma**. 
+
+A continuación se ilustrará cómo los grupos están definidos por la cantidad de líneas verticales del dendrograma, y la selección del número de grupos óptimo se podrá estimar desde este mismo gráfico.
+
+```{r warning=FALSE, message=FALSE}
+
+dendrogram <- hclust(dist(df, method = 'euclidean'), method = 'ward.D')
+ggdendrogram(dendrogram, rotate = FALSE, labels = FALSE, theme_dendro = TRUE) + 
+  labs(title = "Dendrograma")
+
+```
+
+En el **eje horizontal** del dendrograma tenemos *cada uno de los datos* que componen el conjunto de entrada, mientras que en el **eje vertical** se representa la *distancia euclídea* que existe entre cada grupo a medida que éstos se van jerarquizando. 
+
+Cada **línea vertical** del diagrama representa *un agrupamiento*. Conforme se va subiendo en el dendograma termina con un solo gran grupo determinado por la línea horizontal superior. De modo que, **al ir descendiendo en la jerarquía**, se observa que de un solo grupo pasamos a 2, luego a 3, luego a 6, y así sucesivamente. 
+
+Una forma de determinar el número ***K* de grupos adecuado** es cortando el dendrograma a aquella altura del diagrama que mejor representa los datos de entrada.
+
+
+
+## **Clustering no jerárquico**: algoritmo K-means
+
+Pulsar este [enlace](https://uc-r.github.io/kmeans_clustering) para ver una descripción detallada de este algoritmo.
+
+R implementa el **algoritmo K-means** con la función del mismo nombre. Esta función recibe como parámetros de entrada los datos y el número de agrupamientos a realizar (parámetro *centers*). Para abordar el problema de la **elección de los puntos semilla** iniciales incorpora el parámetro *nstart* que prueba múltiples configuraciones iniciales e informa sobre la mejor. Por ejemplo, si *nstart = 25*, generará 25 configuraciones iniciales. El uso de este parámetro es recomendable.
+
+Para este primer ejemplo la función *kmeans* construye dos clusters.
+
+```{r warning=FALSE, message=FALSE}
+
+k2 <- kmeans(df, centers = 2, nstart = 25)
+
+# Displaying all the fields of the object k2
+str(k2)
+
+```
+
+La salida que proporciona la función *kmeans* es una lista de información, de la que destacan las siguientes:
+
+* *cluster*: es un vector de enteros, de 1 a K (K=2 en este caso), que indica el cluster en el que ha sido ubicado cada observación.
+* *centers*: una matriz con los sucesivos centros de los clusters.
+* *totss*: la suma total de cuadrados.
+* *withinss*: vector de suma de cuadrados dentro de cada cluster (un componente por cluster).
+* *tot.withinss*: suma total de cuadrados de los cluster, i.e. sum(withinss).
+* *betweens*: suma de cuadrados entre grupos, i.e. totss-tot.withinss.
+* *size*: el número de observaciones en cada cluster.
+
+
+Al mostrar la variable *k2* se ve como las agrupaciones dan como resultado 2 tamaños de agrupación de 30 y 20. También se ven los centros de cada grupo (medias) en las cuatro variables (Asesinato, Asalto, UrbanPop, Violación). Y por último la asignación de grupo para cada observación (es decir, Alabama se asignó al grupo 2, Arkansas se asignó al grupo 1, etc.).
+
+
+```{r warning=FALSE, message=FALSE}
+k2
+
+```
+
+
+Una forma visual de resumir los resultados de forma elegante y con una interpretación directa es mediante el uso de la función *fviz_cluster*.
+
+```{r warning=FALSE, message=FALSE}
+
+fviz_cluster(k2,data=df)
+
+```
+
+**Observación:**
+
+Si hay más de dos dimensiones (variables), esta función realizará, en primer lugar, un análisis de componentes principales (ACP) y dibujará los puntos de acuerdo a las dos primeras componentes principales obtenidas (las que explican la mayor parte de la varianza). Es por esto que en el gráfico anterior, *Dim1* y *Dim2* se refieren a estas dos componentes principales.
+
+De forma alternativa se puede utilizar un diagrama de dispersión por pares para ilustrar los grupos en comparación con las variables originales.
+
+```{r}
+
+df %>%
+  as_tibble() %>%
+  mutate(cluster = k2$cluster,
+         state = row.names(USArrests)) %>%
+  ggplot(aes(UrbanPop, Murder, color = factor(cluster), label = state)) +
+  geom_text()
+
+```
+
+Para usar el algoritmo K-means, el número **K de clusters debe ser fijado de antemano**. Es por esto que es recomendable ejecutar el mismo proceso con otros valores de K (en este ejemplo para K= 3, 4 y 5) para comparar y examinar las diferencias entre los resultados.
+
+```{r}
+
+set.seed(123)
+
+k3 <- kmeans(df, centers = 3, nstart = 25)
+k4 <- kmeans(df, centers = 4, nstart = 25)
+k5 <- kmeans(df, centers = 5, nstart = 25)
+
+# Plots to compare
+p1 <- fviz_cluster(k2, geom = "point", data = df) + ggtitle("k = 2")
+p2 <- fviz_cluster(k3, geom = "point",  data = df) + ggtitle("k = 3")
+p3 <- fviz_cluster(k4, geom = "point",  data = df) + ggtitle("k = 4")
+p4 <- fviz_cluster(k5, geom = "point",  data = df) + ggtitle("k = 5")
+
+
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+
+```
+
+Aunque esta visualización nos permite deducir donde ocurren las verdaderas diferencias (o no ocurren, como en los clusters 1 y 4 en el gráfico para K=5), **no nos dice cuál es el número óptimo de clusters**.
+
+
+### Determinación del número óptimo de clusters
+
+Tal y como se ha indicado anteriormente, cuando se aplica un método no jerárquico como K-means para realizar un análisis cluster, el investigador debe informar a priori del número de clusters deseado. En este sentido, este investigador estará interesado en **proporcionar de partida un número óptimo de grupos** a formar. 
+
+A continuación se presentan tres de los métodos más utilizados para determinar este número óptimo de grupos: método de Elbow, método de Silhouette y el stadístico Gap.
+
+#### Método de Elbow
+
+Teniendo en mente que la idea tras una división en *K* clusters, es obtener estas agrupaciones de modo que la varianza total intra-grupos sea mínima (total within-cluster variation o total within-cluster sum of square), se puede utilizar el siguiente algoritmo para identificar el número óptimo de clusters:
+
+* Ejecutar un algoritmo de clustering (como K-means) para diferentes valores del *K* (por ejemplo K=1,...,10).
+* Para cada *K* se calcula la variación total intra-cluster (total within-cluster sum of square, que aquí denotamos por *wss*).
+* Se dibuja la curva de *wss* de acuerdo al número de clusters *K*.
+* La localización en esta curva de un 'codo' es tomado como el indicador más apropiado del número de clusters.
+
+Aunque podemos programar este algoritmo en R, el método de Elbow está implementado en la función *fviz_nbclust*.
+
+```{r}
+
+set.seed(123)
+fviz_nbclust(df, kmeans, method = "wss")
+
+```
+
+#### Método de Silhouette
+
+Este enfoque, *silueta promedio*, mide la calidad de un cluster. Es decir, determina como de adecuado es un objeto dentro de su cluster. El número óptimo de clusters según este enfoque es, de entre un rango de valores posibles para *K*, aquel que maximiza la silueta promedio.
+
+Como antes, este algoritmo se puede programar en R, pero la función *fviz_nbclust* también lo incluye.
+
+```{r}
+
+set.seed(123)
+fviz_nbclust(df, kmeans, method = "silhouette")
+
+```
+
+
+#### Método estadístico de brecha (GAP)
+
+Este método compara la variación total intracluster para diferentes valores de *K*. Utiliza simulación Montecarlo en su algoritmo.
+
+La función *clusGap* proporciona el estadístico GAP y su error estándar para una salida. Con la función *fviz_gap_stat* se obtiene una representación gráfica que sugiere un número de clusters.
+
+```{r}
+
+set.seed(123)
+gap_stat <- clusGap(df, FUN = kmeans, nstart = 25,K.max = 10, B = 50)
+fviz_gap_stat(gap_stat)
+
+```
+
+### Análisis de resultados
+
+Tras el análisis pormenorizado del número óptimo de clusters, realizado en la sección anterior, parecen ser K=4 el número de grupos más adecuado.
+
+```{r}
+
+set.seed(123)
+final <- kmeans(df, 4, nstart = 25)
+print(final)
+
+# Final output
+fviz_cluster(final, data = df)
+
+```
+
+Finalmente, es posible extraer los clusters y añadirlos a nuestros datos iniciales para proporcionar algunos estadísticos descriptivos a nivel de cluster.
+
+```{r}
+
+USArrests %>%
+  mutate(Cluster = final$cluster) %>%
+  group_by(Cluster) %>%
+  summarise_all("mean")
+
+```
+
