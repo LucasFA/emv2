@@ -1,0 +1,5 @@
+Trabajo propuesto:
+
+multinacional Ebro
+
+Utilizan InfluxDB tldr serie temporal

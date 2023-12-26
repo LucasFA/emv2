@@ -1,0 +1,33 @@
+# Tests de hipótesis
+
+Supongamos que tengamos un dataset $D$ con un número de variables $N$. Aquí vamos a generar uno de variables independientes con la siguiente función:
+
+```{r}
+gen_dataset <- function(N = 21, n = 10000, seed = 42) {
+  set.seed(seed)
+  mean <- 0
+  variances <- 1
+  matrix(rnorm(n * N, mean, variances), nrow = n, ncol = N)
+}
+```
+
+Creamos un filtro por el cual el dataset acaba con datos perdidos, de manera completamente aleatoria:
+
+```{r}
+gen_filter <- function(D, p = 0.05, seed = 42) {
+  set.seed(seed)
+  n <- nrow(D)
+  m <- ncol(D) - 1
+  filter <- matrix(rbinom(n * m, 1, p), nrow = n, ncol = m)
+  filter <- cbind(filter, 0)
+  D[filter == 1] <- NA
+  D
+}
+```
+
+Entonces lo que hacemos es crear un dataset con estas funciones y comprobar si la distribución de la última variable es independiente 
+
+```{r}
+data <- gen_dataset() |> gen_filter()
+```
+
