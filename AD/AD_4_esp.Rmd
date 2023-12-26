@@ -221,7 +221,7 @@ Se contrasta la **hipótesis nula** de que los datos **siguen una distribución 
 ```{r warning=FALSE, message=FALSE}
 
 datos_tidy <- melt(datos, value.name = "value")
-aggregate(formula = value ~ especie + variable, data = datos_tidy,
+aggregate(x = value ~ especie + variable, data = datos_tidy,
           FUN = function(x){shapiro.test(x)$p.value})
 
 ```
