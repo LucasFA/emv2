@@ -56,7 +56,6 @@ Cargar un paquete en una sesión de R **requiere que ya esté instalado**. Si no
 *install.packages("name_of_the_library")*
 
 ```{r warning=FALSE, message=FALSE}
-
 #########################################
 # Loading necessary packages and reason #
 #########################################
@@ -80,7 +79,6 @@ library(ggdendro)
 
 # Package required to call 'grid.arrange' function
 library(gridExtra)
-
 ```
 
 
@@ -96,21 +94,19 @@ Para realizar un análisis cluster con R los datos deben ser preparados como sig
 Para esta práctica se trabajará con el conjunto de datos *USArrests* del repositorio base de R. Este conjunto de datos contiene estadísticas sobre arrestos por cada 100.000 habitantes según el delito: atraco, asesinato y violación en cada uno de los 50 estados de USA en el año 1973. También incluye el porcentaje de población residente en áreas urbanas. Para este ejemplo se decide **omitir todos los valores perdidos** y **se estandarizan los datos**.
 
 ```{r warning=FALSE, message=FALSE}
-
 # Data loading
-df<-USArrests
+df <- USArrests
 # Visualization of a few records
 head(df)
 
 # Decide to delete not available data
-df<-na.omit(df)
+df <- na.omit(df)
 
 # To prevent the cluster analysis from being influenced by any arbitrary variable, the data are standardized
-df<-as.data.frame(scale(df))
+df <- as.data.frame(scale(df))
 
 # Visualization of standardized data
 head(df)
-
 ```
 
 # **Análisis cluster**
@@ -133,10 +129,8 @@ En R es fácil calcular y visualizar la matriz de distancias entre observaciones
 La siguiente matriz de distancias muestra en **marrón aquellos estados que presentan grandes disimilitudes** (distancias), frente a aquellos que parecen **más cercanos en amarillo**. Se utiliza el color blanco para referirse a aquellos estados con distancias no tan extremas como para ser consideradas como bajas o altas.
 
 ```{r warning=FALSE, message=FALSE}
-
-distance<- get_dist(df)
-fviz_dist(distance, gradient = list(low ="yellow", mid = "white", high = "brown"))
-
+distance <- get_dist(df)
+fviz_dist(distance, gradient = list(low = "yellow", mid = "white", high = "brown"))
 ```
 
 ## **Clustering jerárquico**: método de Ward
@@ -146,11 +140,9 @@ El **agrupamiento jerárquico** está interesado en encontrar una jerarquía bas
 A continuación se ilustrará cómo los grupos están definidos por la cantidad de líneas verticales del dendrograma, y la selección del número de grupos óptimo se podrá estimar desde este mismo gráfico.
 
 ```{r warning=FALSE, message=FALSE}
-
-dendrogram <- hclust(dist(df, method = 'euclidean'), method = 'ward.D')
-ggdendrogram(dendrogram, rotate = FALSE, labels = FALSE, theme_dendro = TRUE) + 
+dendrogram <- hclust(dist(df, method = "euclidean"), method = "ward.D")
+ggdendrogram(dendrogram, rotate = FALSE, labels = FALSE, theme_dendro = TRUE) +
   labs(title = "Dendrograma")
-
 ```
 
 En el **eje horizontal** del dendrograma tenemos *cada uno de los datos* que componen el conjunto de entrada, mientras que en el **eje vertical** se representa la *distancia euclídea* que existe entre cada grupo a medida que éstos se van jerarquizando. 
@@ -170,12 +162,10 @@ R implementa el **algoritmo K-means** con la función del mismo nombre. Esta fun
 Para este primer ejemplo la función *kmeans* construye dos clusters.
 
 ```{r warning=FALSE, message=FALSE}
-
 k2 <- kmeans(df, centers = 2, nstart = 25)
 
 # Displaying all the fields of the object k2
 str(k2)
-
 ```
 
 La salida que proporciona la función *kmeans* es una lista de información, de la que destacan las siguientes:
@@ -194,16 +184,13 @@ Al mostrar la variable *k2* se ve como las agrupaciones dan como resultado 2 tam
 
 ```{r warning=FALSE, message=FALSE}
 k2
-
 ```
 
 
 Una forma visual de resumir los resultados de forma elegante y con una interpretación directa es mediante el uso de la función *fviz_cluster*.
 
 ```{r warning=FALSE, message=FALSE}
-
-fviz_cluster(k2,data=df)
-
+fviz_cluster(k2, data = df)
 ```
 
 **Observación:**
@@ -213,20 +200,19 @@ Si hay más de dos dimensiones (variables), esta función realizará, en primer 
 De forma alternativa se puede utilizar un diagrama de dispersión por pares para ilustrar los grupos en comparación con las variables originales.
 
 ```{r}
-
 df %>%
   as_tibble() %>%
-  mutate(cluster = k2$cluster,
-         state = row.names(USArrests)) %>%
+  mutate(
+    cluster = k2$cluster,
+    state = row.names(USArrests)
+  ) %>%
   ggplot(aes(UrbanPop, Murder, color = factor(cluster), label = state)) +
   geom_text()
-
 ```
 
 Para usar el algoritmo K-means, el número **K de clusters debe ser fijado de antemano**. Es por esto que es recomendable ejecutar el mismo proceso con otros valores de K (en este ejemplo para K= 3, 4 y 5) para comparar y examinar las diferencias entre los resultados.
 
 ```{r}
-
 set.seed(123)
 
 k3 <- kmeans(df, centers = 3, nstart = 25)
@@ -235,13 +221,12 @@ k5 <- kmeans(df, centers = 5, nstart = 25)
 
 # Plots to compare
 p1 <- fviz_cluster(k2, geom = "point", data = df) + ggtitle("k = 2")
-p2 <- fviz_cluster(k3, geom = "point",  data = df) + ggtitle("k = 3")
-p3 <- fviz_cluster(k4, geom = "point",  data = df) + ggtitle("k = 4")
-p4 <- fviz_cluster(k5, geom = "point",  data = df) + ggtitle("k = 5")
+p2 <- fviz_cluster(k3, geom = "point", data = df) + ggtitle("k = 3")
+p3 <- fviz_cluster(k4, geom = "point", data = df) + ggtitle("k = 4")
+p4 <- fviz_cluster(k5, geom = "point", data = df) + ggtitle("k = 5")
 
 
 grid.arrange(p1, p2, p3, p4, nrow = 2)
-
 ```
 
 Aunque esta visualización nos permite deducir donde ocurren las verdaderas diferencias (o no ocurren, como en los clusters 1 y 4 en el gráfico para K=5), **no nos dice cuál es el número óptimo de clusters**.
@@ -265,10 +250,8 @@ Teniendo en mente que la idea tras una división en *K* clusters, es obtener est
 Aunque podemos programar este algoritmo en R, el método de Elbow está implementado en la función *fviz_nbclust*.
 
 ```{r}
-
 set.seed(123)
 fviz_nbclust(df, kmeans, method = "wss")
-
 ```
 
 #### Método de Silhouette
@@ -278,10 +261,8 @@ Este enfoque, *silueta promedio*, mide la calidad de un cluster. Es decir, deter
 Como antes, este algoritmo se puede programar en R, pero la función *fviz_nbclust* también lo incluye.
 
 ```{r}
-
 set.seed(123)
 fviz_nbclust(df, kmeans, method = "silhouette")
-
 ```
 
 
@@ -292,11 +273,9 @@ Este método compara la variación total intracluster para diferentes valores de
 La función *clusGap* proporciona el estadístico GAP y su error estándar para una salida. Con la función *fviz_gap_stat* se obtiene una representación gráfica que sugiere un número de clusters.
 
 ```{r}
-
 set.seed(123)
-gap_stat <- clusGap(df, FUN = kmeans, nstart = 25,K.max = 10, B = 50)
+gap_stat <- clusGap(df, FUN = kmeans, nstart = 25, K.max = 10, B = 50)
 fviz_gap_stat(gap_stat)
-
 ```
 
 ### Análisis de resultados
@@ -304,24 +283,20 @@ fviz_gap_stat(gap_stat)
 Tras el análisis pormenorizado del número óptimo de clusters, realizado en la sección anterior, parecen ser K=4 el número de grupos más adecuado.
 
 ```{r}
-
 set.seed(123)
 final <- kmeans(df, 4, nstart = 25)
 print(final)
 
 # Final output
 fviz_cluster(final, data = df)
-
 ```
 
 Finalmente, es posible extraer los clusters y añadirlos a nuestros datos iniciales para proporcionar algunos estadísticos descriptivos a nivel de cluster.
 
 ```{r}
-
 USArrests %>%
   mutate(Cluster = final$cluster) %>%
   group_by(Cluster) %>%
   summarise_all("mean")
-
 ```
 
