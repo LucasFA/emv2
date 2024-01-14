@@ -52,7 +52,6 @@ Cargar un paquete en una sesión de R **requiere que ya esté instalado**. Si no
 *install.packages("name_of_the_library")*
 
 ```{r warning=FALSE, message=FALSE}
-
 #########################################
 # Loading necessary packages and reason #
 #########################################
@@ -99,24 +98,28 @@ Un equipo de biólogos quiere generar un modelo estadístico que permita clasifi
 Como **datos de entrenamiento** se han medido estas tres variables (**longitud de las patas, diámetro del abdomen y diámetro del órgano sexual** en milímetros) en 10 individuos de cada una de las dos especies.
 
 ```{r warning=FALSE, message=FALSE}
-
 # Response variable
-especie<-c("a","a","a","a","a","a","a","a","a","a","b","b","b","b","b","b","b","b","b","b")
+especie <- c("a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b")
 
 # Explanatory variables
-longitud_pata<-c(191,185,200,173,171,160,188,186,174,163,186,211,201,242,184,211,
-                 217,223,208,199)
-diametro_abdomen<-c(131,134,137,127,128,118,134,129,131,115,107,122,144,131,108,
-                    118,122,127,125,124)
-diametro_organo_sexual<-c(53,50,52,50,49,47,54,51,52,47,49,49,47,54,43,51,49,51,
-                          50,46)
+longitud_pata <- c(
+  191, 185, 200, 173, 171, 160, 188, 186, 174, 163, 186, 211, 201, 242, 184, 211,
+  217, 223, 208, 199
+)
+diametro_abdomen <- c(
+  131, 134, 137, 127, 128, 118, 134, 129, 131, 115, 107, 122, 144, 131, 108,
+  118, 122, 127, 125, 124
+)
+diametro_organo_sexual <- c(
+  53, 50, 52, 50, 49, 47, 54, 51, 52, 47, 49, 49, 47, 54, 43, 51, 49, 51,
+  50, 46
+)
 
-# The whole dataset 
-datos<-data.frame(especie,longitud_pata,diametro_abdomen,diametro_organo_sexual)
+# The whole dataset
+datos <- data.frame(especie, longitud_pata, diametro_abdomen, diametro_organo_sexual)
 
 # The response variable has to be an object of the class 'factor' of R language
-datos$especie<-as.factor(datos$especie)
-
+datos$especie <- as.factor(datos$especie)
 ```
 
 ## Exploración gráfica de los datos
@@ -124,16 +127,14 @@ datos$especie<-as.factor(datos$especie)
 En primer lugar exploramos como de bien (o mal) clasifica en las especies **cada una de las variables explicativas** consideradas de forma independiente.Para ello dibujamos los histogramas superpuestos. Si **los histogramas se separan**, la variable considerada sería un **buen clasificador individual** para la especie.
 
 ```{r warning=FALSE, message=FALSE}
-
 p1 <- ggplot(data = datos, aes(x = longitud_pata, fill = especie)) +
-      geom_histogram(position = "identity", alpha = 0.5)
+  geom_histogram(position = "identity", alpha = 0.5)
 p2 <- ggplot(data = datos, aes(x = diametro_abdomen, fill = especie)) +
-      geom_histogram(position = "identity", alpha = 0.5)
+  geom_histogram(position = "identity", alpha = 0.5)
 p3 <- ggplot(data = datos, aes(x = diametro_organo_sexual, fill = especie)) +
-      geom_histogram(position = "identity", alpha = 0.5)
+  geom_histogram(position = "identity", alpha = 0.5)
 
 ggarrange(p1, p2, p3, nrow = 3, common.legend = TRUE)
-
 ```
 
 En este sentido, parece que la variable **longitud_pata** es la que mejor diferencia entre especies (menor solapamiento).
@@ -141,10 +142,10 @@ En este sentido, parece que la variable **longitud_pata** es la que mejor difere
 A continuación, exploramos qué **pares de variables** separan mejor entre especies.Dibujamos las nubes de puntos bivariadas. Si las nubes de puntos separan bien los colores asignados a cada especie, significa que el par de variables proporcionarían un buen modelo clasificador basado en ellas.
 
 ```{r warning=FALSE, message=FALSE}
-
-pairs(x = datos[, c("longitud_pata","diametro_abdomen","diametro_organo_sexual")],
-      col = c("blue", "orange")[datos$especie], pch = 19)
-
+pairs(
+  x = datos[, c("longitud_pata", "diametro_abdomen", "diametro_organo_sexual")],
+  col = c("blue", "orange")[datos$especie], pch = 19
+)
 ```
 
 La combinación de variables **diametro_abdomen - longitud_pata** y **longitud_pata - diametro_organo_sexual** parecen separar adecuadamente entre especies.
@@ -152,16 +153,16 @@ La combinación de variables **diametro_abdomen - longitud_pata** y **longitud_p
 Finalmente, exploramos si las **tres variables** juntas diferencian adecuadamente entre las dos especies.Dibujamos las nubes de puntos tridimensionales tratando de identificar si la representación gráfica separa las especies según los colores asignados a cada una de ellas.
 
 ```{r warning=FALSE, message=FALSE}
-
 scatterplot3d(datos$longitud_pata, datos$diametro_abdomen, datos$diametro_organo_sexual,
-              color = c("blue", "orange")[datos$especie], pch = 19,
-              grid = TRUE, xlab = "longitud_pata", ylab = "diametro_abdomen",
-              zlab = "diametro_organo_sexual", angle = 65, cex.axis = 0.6)
+  color = c("blue", "orange")[datos$especie], pch = 19,
+  grid = TRUE, xlab = "longitud_pata", ylab = "diametro_abdomen",
+  zlab = "diametro_organo_sexual", angle = 65, cex.axis = 0.6
+)
 legend("topleft",
-       bty = "n", cex = 0.8,
-       title = "Especie",
-       c("a", "b"), fill = c("blue", "orange"))
-
+  bty = "n", cex = 0.8,
+  title = "Especie",
+  c("a", "b"), fill = c("blue", "orange")
+)
 ```
 
 Efectivamente, las tres variables de forma simultánea separan perfectamente las dos especies en el espacio tridimensional generado.Tiene sentido plantearse construir un modelo discriminante para la clasificación, por ejemplo.
@@ -176,7 +177,6 @@ A continuación hacemos una exploración gráfica de la **normalidad** de las **
 **Histogramas univariantes**
 
 ```{r warning=FALSE, message=FALSE}
-
 # Histogram representation of each variable for each species
 par(mfcol = c(2, 3))
 for (k in 2:4) {
@@ -189,15 +189,13 @@ for (k in 2:4) {
     lines(x0, dnorm(x0, mean(x), sd(x)), col = "blue", lwd = 2)
   }
 }
-
 ```
 
 **Gráficos qqplots**
 
 ```{r warning=FALSE, message=FALSE}
-
 # Representation of normal quantiles of each variable for each species
-par(mfrow=c(2,3))
+par(mfrow = c(2, 3))
 for (k in 2:4) {
   j0 <- names(datos)[k]
   x0 <- seq(min(datos[, k]), max(datos[, k]), le = 50)
@@ -208,7 +206,6 @@ for (k in 2:4) {
     qqline(x)
   }
 }
-
 ```
 
 Este análisis exploratorio puede darnos una idea de la posible distribución normal de las variables univariadas, pero siempre es mejor hacer los respectivos test de normalidad.
@@ -219,11 +216,13 @@ Este análisis exploratorio puede darnos una idea de la posible distribución no
 Se contrasta la **hipótesis nula** de que los datos **siguen una distribución normal** univariante. Se **rechaza** esta hipótesis si el **p-valor** dado por el test de Shapiro-Wilk es **menor que 0.05**. En otro caso no se rechaza el supuesto de normalidad de los datos.
 
 ```{r warning=FALSE, message=FALSE}
-
 datos_tidy <- melt(datos, value.name = "value")
-aggregate(x = value ~ especie + variable, data = datos_tidy,
-          FUN = function(x){shapiro.test(x)$p.value})
-
+aggregate(
+  x = value ~ especie + variable, data = datos_tidy,
+  FUN = function(x) {
+    shapiro.test(x)$p.value
+  }
+)
 ```
 
 **No se encuentran evidencias de falta de normalidad** univariante (p-valor > 0.05).
@@ -238,23 +237,19 @@ El paquete **MVN** contiene funciones que permiten realizar los tres test que se
 Esta normalidad multivariante puede verse afectada por la presencia de outliers multivariantes. En este paquete también encontramos **funciones para el análisis de outliers multivariantes**.
 
 ```{r}
-
-outliers <- mvn(data = datos[,-1], mvnTest = "hz", multivariateOutlierMethod = "quan")
-
+outliers <- mvn(data = datos[, -1], mvnTest = "hz", multivariateOutlierMethod = "quan")
 ```
 
 Se detectan 6 outliers en las observaciones 2, 3, 11, 13, 16 y 20. Sin embargo ninguno de los dos test realizados a continuación encuentran evidencias al 5% de significación de falta de normalidad multivariante.
 
 ```{r warning=FALSE, message=FALSE}
-
 # Royston multivariate normality test
-royston_test <- mvn(data = datos[,-1], mvnTest = "royston", multivariatePlot = "qq")
+royston_test <- mvn(data = datos[, -1], mvnTest = "royston", multivariatePlot = "qq")
 royston_test$multivariateNormality
 
 # Henze-Zirkler multivariate normality test
-hz_test <- mvn(data = datos[,-1], mvnTest = "hz")
+hz_test <- mvn(data = datos[, -1], mvnTest = "hz")
 hz_test$multivariateNormality
-
 ```
 
 ## Homogeneidad de la varianza
@@ -268,9 +263,7 @@ La **hipóstesis nula** a contrastar es la de **igualdad de matrices de covarian
 
 
 ```{r warning=FALSE, message=FALSE}
-
 boxM(data = datos[, 2:4], grouping = datos[, 1])
-
 ```
 
 En este caso no rechazamos la hipótesis nula ya que **p-value = 0.132 > 0.001** y por tanto **asumimos la homogeneidad de varianzas**.
@@ -285,10 +278,8 @@ Dado que se **satisfacen los supuestos de normalidad multivariante y de homogene
 La función **lda** del paquete **MASS** ajusta este modelo.
 
 ```{r warning=FALSE, message=FALSE}
-
-modelo_lda <- lda(formula = especie ~ longitud_pata + diametro_abdomen + diametro_organo_sexual,data = datos)
+modelo_lda <- lda(formula = especie ~ longitud_pata + diametro_abdomen + diametro_organo_sexual, data = datos)
 modelo_lda
-
 ```
 
 La salida de este objeto, nos muestra las **probabilidades a priori** de cada grupo, en este caso 0.5 para cada especie (10/20), las **medias de cada regresor por grupo** y los **coeficientes del modelo de clasificación discrimiante lineal**, que en este caso tendría la forma: 
@@ -298,10 +289,8 @@ La salida de este objeto, nos muestra las **probabilidades a priori** de cada gr
 Una vez construido el clasificador podemos clasificar nuevos datos en función de sus medidas sin más que llamar a la función **predict**. Por ejemplo, consideremos un nuevo espécimen cuyas medidas sean: *longitud_pata = 194, diametro_abdomen = 124, diametro_organo_sexual = 49*.
 
 ```{r warning=FALSE, message=FALSE}
-
-nuevas_observaciones <- data.frame(longitud_pata = 194, diametro_abdomen = 124,diametro_organo_sexual = 49)
+nuevas_observaciones <- data.frame(longitud_pata = 194, diametro_abdomen = 124, diametro_organo_sexual = 49)
 predict(object = modelo_lda, newdata = nuevas_observaciones)
-
 ```
 
 Según la función discriminante, la probabilidad a posteriori de que el espécimen sea de la especie **b** es del 94.2% mientras la de que sea de la especie **a** es tan solo del 5.8%. Por tanto este espécimen sería clasificado en la especie **b**. Del mismo modo, tomando como *cut-point* **p = 0.5**, dado que la función discriminante toma el valor **0.5419421**, también invitaría a clasificarlo en la especie **b**.
@@ -315,14 +304,12 @@ Para esta ilustración, sin embargo, tomamos como conjunto de entrenamiento y te
 La función **confusionmatrix** del paquete **biotools** realiza una validación cruzada del modelo de clasificación.
 
 ```{r warning=FALSE, message=FALSE}
-
 pred <- predict(modelo_lda, dimen = 1)
 confusionmatrix(datos$especie, pred$class)
 
 # Classification error percentage
 trainig_error <- mean(datos$especie != pred$class) * 100
 paste("trainig_error=", trainig_error, "%")
-
 ```
 
 En este caso el **porcentaje de aciertos es del 100%** (no es lo habitual).
@@ -332,12 +319,11 @@ En este caso el **porcentaje de aciertos es del 100%** (no es lo habitual).
 Desde el punto de vista geométrico, el análisis discriminante lineal separa el espacio mediante una recta. En este sentido, la función **partimat** del paquete **klaR** permite representar los **límites de clasificación** de un modelo discriminante lineal o cuadrático para cada par de predictores. Cada color representa una región de clasificación acorde al modelo, **se muestra el centroide** de cada región y el **valor real de las observaciones**.
 
 ```{r warning=FALSE, message=FALSE}
-
 partimat(especie ~ longitud_pata + diametro_abdomen + diametro_organo_sexual,
-         data = datos, method = "lda", prec = 200,
-         image.colors = c("green", "orange"),
-         col.mean = "yellow",nplots.vert =1, nplots.hor=3)
-
+  data = datos, method = "lda", prec = 200,
+  image.colors = c("green", "orange"),
+  col.mean = "yellow", nplots.vert = 1, nplots.hor = 3
+)
 ```
 
 A diferencia de la clasificación con  las tres variables explicativas que tiene un error del 0%, al considerar la clasificación según cada par de variables, se cometen errores mayores, aunque como se intuía desde el principio **las parejas *diametro_abdomen - longitud_pata* y *diametro_organo_sexual - longitud_pata* cometen poco error en la clasificación (5%)** mientras el error con la pareja *diametro_abdomen - diametro_organo_sexual* se dispara al 30%.
@@ -350,7 +336,6 @@ A continuación se ilustra un ejemplo de análisis discriminante cuadrático med
 En este ejemplo sí **se va a trabajar con una partición del dataset, como conjunto de entrenamiento,** sobre el que realizaremos el análisis discriminante cuadrático y **otra partición, como conjunto test,** con el que realizaremos la validación del modelo.
 
 ```{r warning=FALSE, message=FALSE}
-
 set.seed(3)
 grupoA_x <- seq(from = -3, to = 4, length.out = 100)
 grupoA_y <- 6 + 0.15 * grupoA_x - 0.3 * grupoA_x^2 + rnorm(100, sd = 1)
@@ -364,12 +349,12 @@ datos <- rbind(grupoA, grupoB)
 datos$grupo <- as.factor(datos$grupo)
 
 # Partitioning the dataset: training (80%) + test (20%)
-trainIndex<-createDataPartition(datos$grupo,p=0.80)$Resample1
-datos_train<-datos[trainIndex,]
-datos_test<-datos[-trainIndex,]
+trainIndex <- createDataPartition(datos$grupo, p = 0.80)$Resample1
+datos_train <- datos[trainIndex, ]
+datos_test <- datos[-trainIndex, ]
 
-plot(datos_train[, 1:2], col = datos$grupo, pch = 19, main="Training dataset")
-plot(datos_test[, 1:2], col = datos$grupo, pch = 19, main="Test dataset")
+plot(datos_train[, 1:2], col = datos$grupo, pch = 19, main = "Training dataset")
+plot(datos_test[, 1:2], col = datos$grupo, pch = 19, main = "Test dataset")
 ```
 
 ## Exploración gráfica de los datos
@@ -377,13 +362,11 @@ plot(datos_test[, 1:2], col = datos$grupo, pch = 19, main="Test dataset")
 En primer lugar exploramos como de bien o mal clasifica en los grupos **cada una de las dos variables** consideradas de forma independiente.
 
 ```{r warning=FALSE, message=FALSE}
-
 p1 <- ggplot(data = datos_train, aes(x = variable_z, fill = grupo)) +
-      geom_histogram(position = "identity", alpha = 0.5)
+  geom_histogram(position = "identity", alpha = 0.5)
 p2 <- ggplot(data = datos_train, aes(x = variable_w, fill = grupo)) +
-      geom_histogram(position = "identity", alpha = 0.5)
+  geom_histogram(position = "identity", alpha = 0.5)
 ggarrange(p1, p2, nrow = 2, common.legend = TRUE, legend = "bottom")
-
 ```
 
 En este sentido, parece que la  **variable_w** es la que mejor diferencia entre grupos (menor solapamiento).
@@ -398,7 +381,6 @@ A continuación hacemos una exploración gráfica de la **normalidad** de las **
 **Histogramas individuales**
 
 ```{r warning=FALSE, message=FALSE}
-
 # Histogram representation of each variable for each group
 par(mfcol = c(2, 2))
 for (k in 1:2) {
@@ -407,8 +389,10 @@ for (k in 1:2) {
   for (i in 1:2) {
     i0 <- levels(datos_train$grupo)[i]
     x <- datos_train[datos_train$grupo == i0, j0]
-    hist(x, proba = T, col = grey(0.8), main = paste("grupo", i0),
-    xlab = j0)
+    hist(x,
+      proba = T, col = grey(0.8), main = paste("grupo", i0),
+      xlab = j0
+    )
     lines(x0, dnorm(x0, mean(x), sd(x)), col = "blue", lwd = 2)
   }
 }
@@ -417,7 +401,6 @@ for (k in 1:2) {
 **Gráficos qqplots**
 
 ```{r warning=FALSE, message=FALSE}
-
 # Representation of normal quantiles of each variable for each group
 par(mfcol = c(2, 2))
 for (k in 1:2) {
@@ -430,7 +413,6 @@ for (k in 1:2) {
     qqline(x)
   }
 }
-
 ```
 
 Este análisis exploratorio puede darnos una idea de la posible distribución normal de las variables univariadas, pero siempre es mejor hacer los respectivos test de normalidad.
@@ -438,13 +420,11 @@ Este análisis exploratorio puede darnos una idea de la posible distribución no
 **Test de normalidad univariantes (Shapiro-Wilk)**
 
 ```{r warning=FALSE, message=FALSE}
-
 # Shapiro-Wilk normality test for each variable in each group
 datos_tidy <- melt(datos_train, value.name = "valor")
 datos_tidy %>%
-  group_by(grupo, variable) %>% 
-  summarise(p_value_Shapiro.test = round(shapiro.test(valor)$p.value,5))
-
+  group_by(grupo, variable) %>%
+  summarise(p_value_Shapiro.test = round(shapiro.test(valor)$p.value, 5))
 ```
 
 Las variables **z** y **w** no se distribuyen según una ley normal para el **grupo A** (p-valor <0.05).
@@ -456,9 +436,7 @@ El paquete **MVN** contiene funciones que permiten realizar los tres test que se
 Esta normalidad multivariante puede verse afectada por la presencia de outliers. En este paquete también encontramos **funciones para el análisis de outliers**.
 
 ```{r warning=FALSE, message=FALSE}
-
-outliers <- mvn(data = datos_train[,-3], mvnTest = "hz", multivariateOutlierMethod = "quan")
-
+outliers <- mvn(data = datos_train[, -3], mvnTest = "hz", multivariateOutlierMethod = "quan")
 ```
 
 En este caso no se detectan outliers. Los dos test realizados a continuación encuentran evidencias, al 5% de significación, de falta de normalidad multivariante. 
@@ -466,15 +444,13 @@ En este caso no se detectan outliers. Los dos test realizados a continuación en
 Si bien es cierto que, tal y como se deduce de las salidas siguientes, **no se cumple el supuesto de normalidad multivariante**, el análisis **discriminante cuadrático tiene cierta robustez** en este caso, aunque conviene tenerlo en cuenta en las conclusiones del análisis.
 
 ```{r warning=FALSE, message=FALSE}
-
 # Royston multivariate normality test
-royston_test <- mvn(data = datos_train[,-3], mvnTest = "royston", multivariatePlot = "qq")
+royston_test <- mvn(data = datos_train[, -3], mvnTest = "royston", multivariatePlot = "qq")
 royston_test$multivariateNormality
 
 # Henze-Zirkler multivariate normality test
-hz_test <- mvn(data = datos_train[,-3], mvnTest = "hz")
+hz_test <- mvn(data = datos_train[, -3], mvnTest = "hz")
 hz_test$multivariateNormality
-
 ```
 
 ## Homogeneidad de la varianza
@@ -484,9 +460,7 @@ Se procede como la *Sección 1.3* anterior.
 La **hipóstesis nula** a contrastar es la de **igualdad de matrices de covarianzas** en todos los grupos.
 
 ```{r warning=FALSE, message=FALSE}
-
 boxM(data = datos_train[, -3], grouping = datos_train[, 3])
-
 ```
 
 En este caso rechazamos la hipótesis nula ya que **p-value < 0.001** y por tanto **asumimos la NO homogeneidad de varianzas**.
@@ -500,10 +474,8 @@ Pese a que no se verifica el supuesto de normalidad multivariante, teniendo en c
 La función **qda** del paquete **MASS** realiza la clasificación.
 
 ```{r warning=FALSE, message=FALSE}
-
 modelo_qda <- qda(grupo ~ variable_z + variable_w, data = datos_train)
 modelo_qda
-
 ```
 
 La salida de este objeto, nos muestra las **probabilidades a priori** de cada grupo, en este caso 0.5 y las **medias de cada regresor por grupo**.
@@ -512,10 +484,8 @@ Una vez construido el clasificador podemos clasificar nuevos datos en función d
 
 
 ```{r warning=FALSE, message=FALSE}
-
 nuevas_observaciones <- datos_test
 predict(object = modelo_qda, newdata = nuevas_observaciones)
-
 ```
 
 Por ejemplo, según la función discriminante, la probabilidad a posteriori de que el primer registro del conjunto test esté en el **grupo A** es del 99,6% mientras la de que esté en el **grupo B** es inferior al 0.1%. Por tanto este dato sería clasificado en el **grupo A**. Se razona del mismo modo con el resto de elementos del conjunto test.
@@ -525,14 +495,12 @@ Por ejemplo, según la función discriminante, la probabilidad a posteriori de q
 La función **confusionmatrix** del paquete **biotools** realiza una validación cruzada del modelo de clasificación.
 
 ```{r}
-
 pred <- predict(object = modelo_qda, newdata = datos_test)
 confusionmatrix(datos_test$grupo, pred$class)
 
 # Classification error percentage
 trainig_error <- mean(datos_test$grupo != pred$class) * 100
 paste("trainig_error=", trainig_error, "%")
-
 ```
 
 En este caso el porcentaje de aciertos es del 90%.
@@ -542,12 +510,12 @@ En este caso el porcentaje de aciertos es del 90%.
 La función **partimat** del paquete **klaR** permite representar los **límites de clasificación** de un modelo discriminante lineal o cuadrático para cada par de predictores. Cada color representa una región de clasificación acorde al modelo, **se muestra el centroide** de cada región y el **valor real de las observaciones**.
 
 ```{r}
-
-partimat(formula = grupo ~ variable_z + variable_w, data = datos_test,
-         method = "qda", prec = 400,
-         image.colors = c("darkgoldenrod1", "skyblue2"),
-         col.mean = "firebrick")
-
+partimat(
+  formula = grupo ~ variable_z + variable_w, data = datos_test,
+  method = "qda", prec = 400,
+  image.colors = c("darkgoldenrod1", "skyblue2"),
+  col.mean = "firebrick"
+)
 ```
 
 # **LDA** vs. **QDA**
